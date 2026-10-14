@@ -3,7 +3,7 @@
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 ![Privacy: 100% Local-First](https://img.shields.io/badge/Privacy-100%25_Local--First-brightgreen)
-![Chrome / Chromium / Brave / Helium](https://img.shields.io/badge/Browser-Chrome%20%7C%20Chromium%20%7C%20Brave%20%7C%20Helium-orange)
+![Chrome / Chromium / Brave / Helium / FireFox](https://img.shields.io/badge/Browser-Chrome%20%7C%20Chromium%20%7C%20Brave%20%7C%20Helium-orange)
 
 ---
 
