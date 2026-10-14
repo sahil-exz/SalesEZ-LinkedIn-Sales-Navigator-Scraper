@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  />
+  <title>SalesEZ: LinkedIn Sales Navigator Scraper</title>
+
+  <style>
+    :root {
+      /*
+       * SalesEZ Enhanced Dark
+       * ---------------------
+       * Near-black foundation
+       * macOS-inspired charcoal surfaces
+       * LinkedIn blue accents
+       */
+
+      --app-bg: #0b0b0d;
+      --window-bg: #111113;
+
+      --surface-1: #18181b;
+      --surface-2: #1c1c1e;
+      --surface-3: #232326;
+
+      --border: #38383a;
+      --border-light: #454549;
+      --border-dark: #29292c;
+
+      --text-primary: #f5f5f7;
+      --text-secondary: #a1a1a6;
+      --text-muted: #727276;
+      --text-disabled: #555559;
+
+      --linkedin-blue: #0a66c2;
+      --linkedin-blue-hover: #378fe9;
+      --linkedin-blue-bright: #4ea1f3;
+      --linkedin-blue-dark: #084f96;
+
+      --success: #34c759;
+      --success-dark: #057642;
+
+      --warning: #ffb340;
+      --danger: #ff453a;
+
+      --shadow-window:
+        0 18px 45px rgba(0, 0, 0, 0.55),
+        0 5px 16px rgba(0, 0, 0, 0.4);
+
+      --shadow-card:
+        0 4px 12px rgba(0, 0, 0, 0.42);
+
+      --radius-sm: 7px;
+      --radius-md: 9px;
+      --radius-lg: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-width: 380px;
+      max-width: 380px;
+      margin: 0;
+      padding: 0;
+      background: var(--app-bg);
+      overflow: hidden;
+    }
+
+    body {
+      overflow-x: hidden;
+
+      color: var(--text-primary);
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+      font-size: 13px;
+      line-height: 1.45;
+
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      outline: none;
+    }
+
+    /* =========================================================
+       APP FRAME
+       ========================================================= */
+
+    .app {
+      padding: 6px;
+      background: var(--app-bg);
+    }
+
+    .window {
+      position: relative;
+
+      overflow: hidden;
+
+      border: 1px solid var(--border-dark);
+      border-radius: 13px;
+
+      background: var(--window-bg);
+
+      box-shadow: var(--shadow-window);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+
+      padding: 12px 14px 10px;
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 12px;
+
+      margin-bottom: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+
+      min-width: 0;
+
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 80px;
+      height: 80px;
+      margin-right: 14px;
+      flex-shrink: 0;
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+
+      color: var(--text-primary);
+
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-description {
+      margin: 2px 0 0;
+
+      color: var(--text-secondary);
+
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    /* =========================================================
+       STATUS BADGE
+       ========================================================= */
+
+    #statusBadge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-width: 64px;
+      height: 24px;
+
+      padding: 0 9px;
+
+      flex-shrink: 0;
+
+      border: 1px solid var(--border);
+      border-radius: 999px;
+
+      color: var(--text-secondary);
+      background: var(--surface-2);
+
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+
+      white-space: nowrap;
+    }
+
+    #statusBadge::before {
+      content: "";
+
+      width: 5px;
+      height: 5px;
+
+      margin-right: 6px;
+
+      border-radius: 50%;
+
+      background: var(--text-muted);
+    }
+
+    #statusBadge.status-scraping {
+      color: var(--warning);
+      border-color: #6d532c;
+      background: #211c14;
+    }
+
+    #statusBadge.status-scraping::before {
+      background: var(--warning);
+
+      box-shadow:
+        0 0 0 3px rgba(255, 179, 64, 0.08),
+        0 0 7px rgba(255, 179, 64, 0.55);
+    }
+
+    #statusBadge.status-complete {
+      color: #10b981;
+      border-color: #285e38;
+      background: #111f16;
+    }
+
+    #statusBadge.status-complete::before {
+      background: var(--success);
+
+      box-shadow:
+        0 0 0 3px rgba(52, 199, 89, 0.08),
+        0 0 7px rgba(52, 199, 89, 0.45);
+    }
+
+    #statusBadge.status-error {
+      color: #ff6962;
+      border-color: #6b2e2b;
+      background: #211312;
+    }
+
+    #statusBadge.status-error::before {
+      background: var(--danger);
+    }
+
+    #statusBadge.status-stopped {
+      color: var(--text-secondary);
+      background: var(--surface-2);
+    }
+
+    /* =========================================================
+       TARGET AREA
+       ========================================================= */
+
+    .field-label {
+      display: block;
+
+      margin: 0 0 5px;
+
+      color: var(--text-secondary);
+
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    .target-row {
+      display: flex;
+      align-items: stretch;
+
+      gap: 8px;
+    }
+
+    .target-field {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    #targetInput {
+      display: block;
+
+      width: 100%;
+      height: 38px;
+
+      padding: 0 46px 0 12px;
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+
+      outline: none;
+
+      color: var(--text-primary);
+      background: #141416;
+
+      font-size: 13px;
+      font-weight: 550;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.025),
+        var(--shadow-card);
+
+      transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        box-shadow 150ms ease;
+    }
+
+    #targetInput:hover {
+      border-color: var(--border-light);
+      background: #18181b;
+    }
+
+    #targetInput:focus {
+      border-color: var(--linkedin-blue);
+
+      background: #151619;
+
+      box-shadow:
+        0 0 0 2px rgba(10, 102, 194, 0.18),
+        var(--shadow-card);
+    }
+
+    #targetInput::-webkit-inner-spin-button,
+    #targetInput::-webkit-outer-spin-button {
+      opacity: 0.65;
+    }
+
+    .target-suffix {
+      position: absolute;
+
+      top: 50%;
+      right: 11px;
+
+      transform: translateY(-50%);
+
+      pointer-events: none;
+
+      color: var(--text-muted);
+
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    /* =========================================================
+       BUTTONS
+       ========================================================= */
+
+    .btn {
+      position: relative;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      gap: 7px;
+
+      min-width: 0;
+      height: 38px;
+
+      padding: 0 14px;
+
+      border-radius: var(--radius-md);
+
+      cursor: pointer;
+      user-select: none;
+
+      font-size: 11px;
+      font-weight: 650;
+
+      transition:
+        background-color 130ms ease,
+        border-color 130ms ease,
+        box-shadow 130ms ease,
+        color 130ms ease,
+        transform 80ms ease;
+    }
+
+    .btn svg {
+      width: 14px;
+      height: 14px;
+
+      flex-shrink: 0;
+    }
+
+    .btn:not(:disabled):active {
+      transform: translateY(1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    /* Primary */
+
+    .btn-primary {
+      color: #ffffff;
+
+      border: 1px solid #1976cf;
+
+      background: var(--linkedin-blue);
+
+      box-shadow:
+        0 5px 12px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-primary:hover {
+      border-color: var(--linkedin-blue-hover);
+
+      background: var(--linkedin-blue-hover);
+
+      box-shadow:
+        0 6px 15px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-primary:focus-visible {
+      box-shadow:
+        0 0 0 2px rgba(10, 102, 194, 0.24),
+        0 5px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    #extractBtn {
+      min-width: 118px;
+      flex: 0 0 118px;
+    }
+
+    /* Secondary */
+
+    .btn-secondary {
+      color: #dedee3;
+
+      border: 1px solid var(--border);
+
+      background: var(--surface-2);
+
+      box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    }
+
+    .btn-secondary:hover {
+      color: #ffffff;
+
+      border-color: var(--border-light);
+
+      background: var(--surface-3);
+    }
+
+    /* Tertiary */
+
+    .btn-tertiary {
+      color: #c1c1c6;
+
+      border: 1px solid var(--border);
+
+      background: #151517;
+
+      box-shadow:
+        0 3px 9px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .btn-tertiary:hover {
+      color: #f0f0f2;
+
+      border-color: var(--border-light);
+
+      background: var(--surface-2);
+    }
+
+    /* Stop */
+
+    #stopBtn {
+      width: 100%;
+      margin-top: 6px;
+      height: 36px;
+
+      color: #d7d7dc;
+
+      border-color: #444448;
+      background: #202023;
+    }
+
+    #stopBtn:hover {
+      color: #ffffff;
+      background: #29292c;
+    }
+
+    /* =========================================================
+       ACTIVITY
+       ========================================================= */
+
+    .activity {
+      margin-top: 8px;
+    }
+
+    #status {
+      min-height: 15px;
+
+      margin: 0 1px 5px;
+
+      color: #10b981;
+
+      font-size: 10px;
+      font-weight: 500;
+
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    #progressTrack {
+      width: 100%;
+      height: 4px;
+
+      overflow: hidden;
+
+      border-radius: 999px;
+
+      background: #29292c;
+
+      box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.55);
+    }
+
+    #progressFill {
+      position: relative;
+
+      width: 0%;
+      height: 100%;
+
+      border-radius: inherit;
+
+      background: var(--linkedin-blue);
+
+      box-shadow:
+        0 0 8px rgba(10, 102, 194, 0.55);
+
+      transition: width 250ms ease;
+    }
+
+    #progressFill.animate {
+      animation: progressPulse 1.35s ease-in-out infinite;
+    }
+
+    /* =========================================================
+       METRICS
+       ========================================================= */
+
+    #statsBar {
+      display: grid;
+
+      grid-template-columns: 1fr 1fr;
+
+      gap: 8px;
+
+      margin-top: 8px;
+    }
+
+    .metric-card {
+      min-height: 46px;
+
+      padding: 6px 10px 7px;
+
+      border: 1px solid var(--border);
+
+      border-radius: var(--radius-md);
+
+      background: var(--surface-1);
+
+      box-shadow: var(--shadow-card);
+    }
+
+    .metric-label {
+      display: block;
+
+      margin-bottom: 3px;
+
+      color: var(--text-muted);
+
+      font-size: 8px;
+      font-weight: 600;
+
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      display: block;
+
+      color: var(--text-primary);
+
+      font-size: 15px;
+      font-weight: 650;
+
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+
+    #statStatus {
+      color: var(--linkedin-blue-bright);
+    }
+
+    /* =========================================================
+       PREVIEW
+       ========================================================= */
+
+    #preview-container {
+      margin-top: 9px;
+    }
+
+    .preview-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1px;
+      margin-bottom: 5px;
+    }
+
+    .preview-title {
+      color: var(--text-secondary);
+      font-size: 9px;
+      font-weight: 650;
+      letter-spacing: 0.065em;
+      text-transform: uppercase;
+    }
+
+    .preview-count {
+      color: var(--text-muted);
+      font-size: 9px;
+      font-weight: 500;
+    }
+
+    /* Minimalist Monospace Table Preview */
+    #preview {
+      width: 100%;
+      max-height: 96px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 6px 9px;
+      border: 1px solid #242428;
+      border-radius: var(--radius-md);
+      background: #0c0c0e;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.65);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 10.5px;
+      line-height: 1.55;
+      scrollbar-width: thin;
+      scrollbar-color: #2e2e32 transparent;
+    }
+
+    #preview::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #preview::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #preview::-webkit-scrollbar-thumb {
+      background: #2e2e32;
+      border-radius: 999px;
+    }
+
+    #preview::-webkit-scrollbar-thumb:hover {
+      background: #454549;
+    }
+
+    #preview .preview-table-head,
+    #preview .lead-row {
+      display: grid;
+      grid-template-columns: 28px minmax(96px, 122px) 1fr;
+      gap: 8px;
+      align-items: baseline;
+      padding: 1px 2px;
+      border: none;
+      background: transparent;
+      white-space: nowrap;
+    }
+
+    #preview .preview-table-head {
+      position: sticky;
+      top: -6px;
+      padding: 2px 2px 4px;
+      margin-bottom: 2px;
+      background: #0c0c0e;
+      color: #8e8e93;
+      font-weight: 500;
+      border-bottom: 1px solid #1c1c20;
+      z-index: 1;
+    }
+
+    #preview .lead-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+    }
+
+    #preview .col-id {
+      color: #727276;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #preview .col-name {
+      color: #e5e5ea;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #preview .col-title {
+      color: #a1a1a6;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #preview .meta {
+      grid-column: 1 / -1;
+      color: #727276;
+      padding-top: 3px;
+      font-size: 10px;
+    }
+
+    /* =========================================================
+       EXPORT SECTION
+       ========================================================= */
+
+    .export-section {
+      margin-top: 10px;
+    }
+
+    .export-stack {
+      display: grid;
+      gap: 5px;
+    }
+
+    #copyTsvBtn,
+    #sheetsBtn,
+    #csvBtn {
+      width: 100%;
+    }
+
+    #copyTsvBtn {
+      height: 38px;
+    }
+
+    #copyTsvBtn span:last-child {
+      margin-left: auto;
+    }
+
+    /* Auto-Save */
+
+    #sheetsBtn {
+      justify-content: flex-start;
+
+      padding-left: 12px;
+      padding-right: 10px;
+      height: 35px;
+    }
+
+    #sheetsBtn svg {
+      color: var(--text-secondary);
+    }
+
+    #sheetsBtn span:first-of-type {
+      flex: 1;
+      text-align: left;
+    }
+
+    #sheetsBtn.coming-soon {
+      color: #c0c0c5;
+      opacity: 0.72;
+
+      cursor: pointer;
+    }
+
+    #sheetsBtn.coming-soon:hover {
+      opacity: 1;
+
+      border-color: #4a4a4e;
+      background: #232326;
+    }
+
+    #sheetsBtn.coming-soon:active {
+      transform: translateY(1px);
+    }
+
+    .coming-soon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      height: 19px;
+
+      padding: 0 7px;
+
+      flex: 0 0 auto;
+
+      border: 1px solid #6b5429;
+      border-radius: 999px;
+
+      color: #e6aa49;
+      background: #211c14;
+
+      font-size: 8px;
+      font-weight: 700;
+
+      letter-spacing: 0.045em;
+      text-transform: uppercase;
+
+      white-space: nowrap;
+    }
+
+    /* CSV */
+
+    #csvBtn {
+      height: 35px;
+
+      color: #a8a8ae;
+
+      background: #131315;
+    }
+
+    #csvBtn:hover {
+      color: #e4e4e7;
+      background: #1b1b1e;
+    }
+
+    #csvBtn svg {
+      color: #85858b;
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 8px;
+
+      margin-top: 7px;
+      padding: 0 2px;
+    }
+
+    .footer-note {
+      color: #626267;
+
+      font-size: 8px;
+      font-weight: 500;
+    }
+
+    .footer-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+
+      color: #65656a;
+
+      font-size: 8px;
+      font-weight: 500;
+    }
+
+    .footer-state::before {
+      content: "";
+
+      width: 4px;
+      height: 4px;
+
+      border-radius: 50%;
+
+      background: #4a4a4f;
+    }
+
+    /* =========================================================
+       GENERAL STATES
+       ========================================================= */
+
+    #stopBtn {
+      display: none;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    /* =========================================================
+       ACCESSIBILITY
+       ========================================================= */
+
+    :focus-visible {
+      outline: none;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid rgba(55, 143, 233, 0.65);
+      outline-offset: 1px;
+    }
+
+    /* =========================================================
+       MOTION
+       ========================================================= */
+
+    @keyframes progressPulse {
+      0% {
+        opacity: 0.72;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.72;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <main class="window">
+      <div class="content">
+
+        <!-- ===================================================
+             HEADER
+        ==================================================== -->
+
+        <header class="header">
+          <div class="brand">
+            <div class="brand-icon" aria-hidden="true">
+              <img src="icon.png" alt="SalesEZ Scraper" style="width: 100%; height: auto; display: block;">
+            </div>
+
+            <div class="brand-copy">
+              <h1 class="brand-title">SalesEZ Scraper</h1>
+
+              <p class="brand-description">
+                Extract LinkedIn Sales Navigator leads to clean Google Sheets or Excel tables.
+              </p>
+            </div>
+          </div>
+
+          <div id="statusBadge" class="status-ready">
+            READY
+          </div>
+        </header>
+
+        <!-- ===================================================
+             TARGET
+        ==================================================== -->
+
+        <section aria-label="Extraction settings">
+
+          <label
+            class="field-label"
+            for="targetInput"
+          >
+            Target results
+          </label>
+
+          <div class="target-row">
+
+            <div class="target-field">
+              <input
+                id="targetInput"
+                type="number"
+                min="1"
+                max="5000"
+                value="50"
+                inputmode="numeric"
+                autocomplete="off"
+                aria-label="Target results"
+              />
+
+              <span class="target-suffix">
+                LEADS
+              </span>
+            </div>
+
+            <button
+              id="extractBtn"
+              class="btn btn-primary"
+              type="button"
+              aria-label="Extract Leads"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8"
+                ></circle>
+
+                <path d="M12 4v16"></path>
+                <path d="M4 12h16"></path>
+              </svg>
+
+              <span>
+                Extract Leads
+              </span>
+            </button>
+
+          </div>
+
+          <button
+            id="stopBtn"
+            class="btn btn-secondary"
+            type="button"
+          >
+            Stop Scrape
+          </button>
+
+          <!-- =================================================
+               ACTIVITY
+          ================================================== -->
+
+          <div class="activity">
+
+            <div
+              id="status"
+              aria-live="polite"
+            >
+              Ready to extract leads from your active Sales Navigator search.
+            </div>
+
+            <div
+              id="progressTrack"
+              aria-hidden="true"
+            >
+              <div id="progressFill"></div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ===================================================
+             METRICS
+        ==================================================== -->
+
+        <section
+          id="statsBar"
+          aria-label="Extraction statistics"
+        >
+
+          <div class="metric-card">
+
+            <span class="metric-label">
+              Rows extracted
+            </span>
+
+            <strong
+              id="statRows"
+              class="metric-value"
+            >
+              0
+            </strong>
+
+          </div>
+
+          <div class="metric-card">
+
+            <span class="metric-label">
+              Status
+            </span>
+
+            <strong
+              id="statStatus"
+              class="metric-value"
+            >
+              Ready
+            </strong>
+
+          </div>
+
+        </section>
+
+        <!-- ===================================================
+             PREVIEW
+        ==================================================== -->
+
+        <section
+          id="preview-container"
+          aria-label="Lead preview"
+        >
+
+          <div class="preview-heading">
+
+            <span class="preview-title">
+              Live data preview
+            </span>
+
+            <span id="previewCount" class="preview-count">
+              Latest leads
+            </span>
+
+          </div>
+
+          <div id="preview">
+            <div
+              style="
+                padding: 19px 14px;
+                text-align: center;
+                color: #727276;
+                font-size: 10px;
+              "
+            >
+              Captured leads will appear here.
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ===================================================
+             EXPORT ACTIONS
+        ==================================================== -->
+
+        <section
+          class="export-section"
+          aria-label="Export options"
+        >
+
+          <div class="export-stack">
+
+            <!-- PRIMARY EXPORT -->
+
+            <button
+              id="copyTsvBtn"
+              class="btn btn-primary"
+              style="display: none;"
+              type="button"
+              aria-label="Copy leads and open Google Sheets"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect
+                  x="4"
+                  y="3"
+                  width="16"
+                  height="18"
+                  rx="2"
+                ></rect>
+
+                <path d="M8 8h8"></path>
+                <path d="M8 12h8"></path>
+                <path d="M8 16h5"></path>
+              </svg>
+
+              <span>
+                Copy Leads &amp; Open Sheets
+              </span>
+
+              <span
+                style="
+                  color: rgba(255,255,255,0.72);
+                  font-size: 9px;
+                  font-weight: 500;
+                "
+              >
+                Ctrl+V
+              </span>
+            </button>
+
+            <!-- SECONDARY EXPORT -->
+
+            <button
+              id="sheetsBtn"
+              class="btn btn-secondary btn-secondary-glass coming-soon"
+              style="display: none;"
+              type="button"
+              aria-label="Auto-Save to Google Sheets — Coming Soon"
+            >
+
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="18"
+                  rx="2"
+                ></rect>
+
+                <path d="M3 9h18"></path>
+                <path d="M3 15h18"></path>
+
+                <path d="M9 3v18"></path>
+                <path d="M15 3v18"></path>
+              </svg>
+
+              <span>
+                Auto-Save to Google Sheets
+              </span>
+
+              <span class="coming-soon-badge">
+                Coming Soon
+              </span>
+
+            </button>
+
+            <!-- TERTIARY EXPORT -->
+
+            <button
+              id="csvBtn"
+              class="btn btn-tertiary"
+              style="display: none;"
+              type="button"
+              aria-label="Download CSV file"
+            >
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 4v11"></path>
+                <path d="M8.5 11.5L12 15l3.5-3.5"></path>
+                <path d="M5 20h14"></path>
+              </svg>
+
+              <span>
+                Download CSV File
+              </span>
+
+            </button>
+
+          </div>
+
+        </section>
+
+        <!-- ===================================================
+             FOOTER
+        ==================================================== -->
+
+        <footer class="footer">
+
+          <span class="footer-note">
+            Sales Navigator workflow
+          </span>
+
+          <span class="footer-state">
+            Local-first export
+          </span>
+
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Existing extension logic -->
+  <script src="scrub.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
